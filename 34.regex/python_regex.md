@@ -38,7 +38,7 @@ Is to compile your regex pattern first
 
 see phone.py
 
-*Parsing Urls with regex*
+### Parsing Urls with regex
 See url.py for example regex
 
 ```
@@ -56,11 +56,57 @@ In above example, items wrapped in `()` or grouped together.
 - match.group(1) - First group
   `'https'`
 
-You can also label the groups to make matching easier:
+You can also label the groups to make matching easier, using syntax `?P<label>`:
 ```
 name_regex = re.compile(r'^(Mr\.|Mrs\.|Ms\.|Mdme\.) (?P<first>[A-Za-z]+) (?P<last>[A-Za-z]+)$')
 matches = name_regex.search('Mr. Bob James')
 
 print(matches.group('first'))
->>>
+>>> Bob
+```
+
+### Compilation flags
+https://docs.python.org/3/howto/regex.html#compilation-flags
+
+See docs for full list, but some useful options:
+
+- IGNORECASE, I - Do case-insensitive matches.
+
+- MULTILINE, M - Multi-line matching, affecting ^ and $.
+
+- VERBOSE, X (for ‘extended’) - Enable verbose REs, which can be organized more cleanly and understandably.* (see ../flags.py)
+  ```
+  # pat = re.compile(r'^([a-z0-9_\.-]+)@([0-9a-z\.-]+)\.([a-z\.]{2,6})$')
+
+  # Can use re.VERBOSE (or re.X) to write the above regex over multiple lines, for easier reading
+  pat = re.compile(r"""
+  	^([a-z0-9_\.-]+)	#first part of email
+  	@					        #single @ sign
+  	([0-9a-z\.-]+)		#email provider
+  	\.					      #single period
+  	([a-z\.]{2,6})$		#com, org, net, etc.
+  """, re.VERBOSE)
+  ```
+You can use multiple flags by piping them together `re.VERBOSE | re.IGNORECASE`
+
+### Regex substitutions
+Another common task is to find all the matches for a pattern, and replace them with a different string. The `sub()` method takes a replacement value, which can be either a string or a function, and the string to be processed.
+
+There’s also a syntax for referring to named groups as defined by the (?P<name>...) syntax. `\g<name>` will use the substring matched by the group named name, and `\g<number>`. eg. `\g<1>` will match the first group.
+
+```
+text = "Last night Mrs. Daisy and Mr. white murdered Ms. Chow"
+
+pattern = re.compile(r'(Mr.|Mrs.|Ms.) ([a-z])[a-z]+', re.I)
+result = pattern.sub("\g<1> \g<2>", text)
+print(result)
+
+# Last night Mrs. D and Mr. w murdered Ms. C
+```
+
+You could also use `.sub()` to swap the order of the groups. See books.py
+```
+>>> result = pattern.sub("\g<2> \g<1>", text)
+>>> result
+'Last night D Mrs. and w Mr. murdered C Ms.'
 ```
